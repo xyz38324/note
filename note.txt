@@ -1,0 +1,141 @@
+trainer()       --------> DefaultTrainer():---------(detectron2/engine/defaults.py)-------->TrainerBase()(detectron2/engine/train_loop.py) 
+                            __init__()                                                          train():(detectron2/engine/train_loop.py)
+                                model  (meta_arch/build.py)                                             before_train():
+                                                                                                            h.before_train()运行钩子，在训练开始前
+                                optimizer [有默认方法，可在子函数trainer()中重写]                           -------开始迭代--------
+                                data_loader                                                             before_step():
+                                scheduler                                                                   h.before_step()
+                                checkpointer                                                            run_step():
+                                                                                                            ***********************
+                                                                                                            未定义，在子类中实现具体逻辑
+                                register_hooks                                                              ***********************
+                                                                                                        after_step():
+                                _trainer: SimpleTrainer                                                                h.after_step()
+                                    构建一个SimpleTrainer,这个类已经包含基本功能，所以
+                                    DefaultTrainer基于此进行扩展。
+                                    模型训练正向传播是run_step().这里就调用SimpleTrainer的方法                                                         
+                                                                                                        self.iter += 1 迭代次数+1
+                                                                                                        -------迭代结束--------
+                                                                                                        after_train():
+                                                                                                            h.after_train()
+
+
+                                   
+
+
+
+
+
+detectron2/modeling/meta_arch/rcnn.py）
+GeneralizedRCNN是一个框架，包括了backbone proposal_generator roi 等组件
+    build_model;
+    build_optimizer;
+    build_train_loader;
+    pixel_mean，pixel_std用于归一化输入数据（需要探讨如何设置这两个参数）
+    input_format默认使用BRG格式图片，和rgb有什么区别需要探讨，如何转换
+    vis_period 用于可视化训练结果的频率，默认是0，不使用
+
+    register_buffer 注册buffer存储pixel_mean，pixel_std，可以使用pixel_mean = model.pixel_mean 来提取，更方便使用罢了。
+
+
+    build_model:使用GeneralizedRCNN作为META_ARCHITECTURE
+
+    class GeneralizedRCNN:（detectron2/modeling/meta_arch/rcnn.py）
+
+        backbone: build_resnet_fpn_backbone（detectron2/modeling/backbone/fpn.py）
+        proposal_generator:默认使用_C.MODEL.RPN.HEAD_NAME = "StandardRPNHead"  （detectron2/modeling/proposal_generator/rpn.py/class StandardRPNHead(nn.Module)）
+        roi_heads: DensePoseROIHeads  (densepose/modeling/roi_heads)  class DensePoseROIHeads
+
+
+    class DensePoseROIHeads(StandardROIHeads):(detectron2/projects/DensePose/densepose/modeling/roi_heads/roi_head.py)
+        继承StandardROIHeads类（detectron2/modeling/roi_heads/roi_heads.py）
+        元类class ROIHeads(torch.nn.Module):（detectron2/modeling/roi_heads/roi_heads.py）
+            num_classes, 80, coco数据集的类别，（person,bycicle,car...）
+            batch_size_per_image,512, 有很多anchor boxes, 从中选择512个
+            positive_fraction, 0.25; 25% *512=128 个anchor boxes是foreground
+            proposal_matcher,定义IOU_THRESHOLDS:0.5 
+            proposal_append_gt=True,
+    
+    class DensePoseROIHeads(StandardROIHeads):
+
+
+
+
+
+
+1:实例化trainer
+2:trainer.resume_or_load()读取MODEL.WEIGHTS
+3:trainer.train()
+
+
+1 做好模型骨架，其余不考虑
+2 把模型细节做好
+3 钩子做好
+4 做好get_cfg()函数
+
+重写standardroihead, 在写densepose head,
+
+
+
+
+#说一下GeneralizedRCNN实例化时如何传递参数的机制: 在__init__方法上使用@configurable装饰器，
+这个装饰器可以让model = META_ARCH_REGISTRY.get(meta_arch)(cfg)在注册表里寻找class时先调用类方法from_config()-->CombinedModel.from_config(cfg),
+这里还不需要实例化模型，因为还没有从配置文件中得到具体的参数，因此使用类方法调用函数。在得到相关配置后，将其传入__init__方法来构建模型实例。如果不使用类装饰器装饰from_config(),
+就必须先实例化模型类，这样就无法在实例化的时候传入具体参数。 这个方法可以让类实例化时使用复杂的方法来读取配置文件中的参数。
+
+
+#注册表机制:BACKBONE_REGISTRY = Registry("BACKBONE") 这里使用Rsgistry进行注册表生成，这个注册表叫“BACKBONE”,只是一个名字，之后就不会用到了，
+注册表分配给参数BACKBONE_REGISTRY, 之后在自定义的类：class MyBackbone(nn.Module):上使用装饰器@BACKBONE_REGISTRY.register()，就可以将新的类注册进去，
+之后backbone_cls = BACKBONE_REGISTRY.get("MyBackbone")就可以得到这个类
+
+
+
+
+? pixel_mean, pixel_std 用于denseposes输入归一化，需要确定这个参数
+? mtn的输出时=是1个3channel rgb图片，那么输入densepose网络的是一张还是一个batch呢？
+?看一下proprocess_image中ImageList方法
+？输入mtn网络的数据应该是tensor type的
+
+1首先images = self.preprocess_image(batched_inputs) 归一化输入信息。 
+2然后将mtn_output = self.mtn(images)
+3将mtn_output放入densepose model中进行训练： features = self.backbone(mtn_output.tensor)
+
+
+
+
+#调试过程：{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: Train",
+        "type": "python",
+        "request": "launch",
+        "program": "/home/visier/densepose/detectron2/projects/DensePose/train_net.py",
+        "args": [
+          "--config-file", "/home/visier/densepose/detectron2/projects/DensePose/configs/densepose_rcnn_R_50_FPN_s1x.yaml",
+          "SOLVER.IMS_PER_BATCH", "2",
+          "SOLVER.BASE_LR", "0.0025"
+        ],
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+  
+  单步调试： 每一行都会运行
+  逐过程：只会运行函数，函数里的具体过程不会运行
+
+
+  #(/home/visier/densepose/detectron2/detectron2/modeling/roi_heads/roi_heads.py)StandardROIHeads
+  其中子类：DensePoseROIHeads初始化时会调用父类的__init__ 方法，首先会运行from_config()方法初始化不同的head，这是经过断点调试验证过的；
+  if inspect.ismethod(),返回true如果输入是类函数，如果我不需要某个head (_init_mask_head),那么在自类中重新定义这个类方法然后pass 就可以/return {}
+
+#在(/home/visier/densepose/detectron2/detectron2/modeling/roi_heads/roi_heads.py)StandardROIHeads中的forward方法， if self.training条件下，如果
+self.train_on_pred_boxes=False,那么mask head和keypopint head 的输入就是rpn的输出，和box head的输入是相同的，
+如果self.train_on_pred_boxes=True,那么mask&keypoint head的输入就是box head的输出，proposal中包含了bounding box,更精准了但是更考验box head的准确度
+
+  #####???/home/visier/densepose/detectron2/detectron2/modeling/roi_heads/roi_heads.py 看一下747行，keypoint训练用到的instance是否是从box head得到的
+
+  注意，论文中在进行迁移学习时，用到了fpn的res2,3,4,5层，而denspose项目只用了res4 #在yaml配置文件中，不是默认配置文件，看一下ROI_HEADS的IN_FEATURE()
+
+  计算keypoint和densepose的loss时，是直接计算head 的loss还是计算融合之后的loss?  可以refinement 之前和之后都计算然后放到一起然后加载用于csi的模型时，keypoint和densepose的模型参数使用提供的
+  11.14任务：看一下densepose的25个输出层每层代表哪个部分，和keypoint的17个channel是否有具体代表，然后如果有代表，就融合在一起。 把refinement unit做完，然后设置好transfer learning，把模型做完
