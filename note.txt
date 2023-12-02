@@ -137,5 +137,8 @@ self.train_on_pred_boxes=False,那么mask head和keypopint head 的输入就是r
 
   注意，论文中在进行迁移学习时，用到了fpn的res2,3,4,5层，而denspose项目只用了res4 #在yaml配置文件中，不是默认配置文件，看一下ROI_HEADS的IN_FEATURE()
 
-  计算keypoint和densepose的loss时，是直接计算head 的loss还是计算融合之后的loss?  可以refinement 之前和之后都计算然后放到一起然后加载用于csi的模型时，keypoint和densepose的模型参数使用提供的
-  11.14任务：看一下densepose的25个输出层每层代表哪个部分，和keypoint的17个channel是否有具体代表，然后如果有代表，就融合在一起。 把refinement unit做完，然后设置好transfer learning，把模型做完
+
+
+
+12/3日任务： 1 roi_head.py建立_init_kp_dp_rf_head（）方法，其中包含pooler和build_keypoint_head
+            2 完成dp_kp_refinement_head的代码
