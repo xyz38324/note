@@ -133,12 +133,61 @@ GeneralizedRCNN是一个框架，包括了backbone proposal_generator roi 等组
 self.train_on_pred_boxes=False,那么mask head和keypopint head 的输入就是rpn的输出，和box head的输入是相同的，
 如果self.train_on_pred_boxes=True,那么mask&keypoint head的输入就是box head的输出，proposal中包含了bounding box,更精准了但是更考验box head的准确度
 
-  #####???/home/visier/densepose/detectron2/detectron2/modeling/roi_heads/roi_heads.py 看一下747行，keypoint训练用到的instance是否是从box head得到的
 
-  注意，论文中在进行迁移学习时，用到了fpn的res2,3,4,5层，而denspose项目只用了res4 #在yaml配置文件中，不是默认配置文件，看一下ROI_HEADS的IN_FEATURE()
 
+<<<<<<< HEAD:note.txt
 
 
 
 12/3日任务： 1 roi_head.py建立_init_kp_dp_rf_head（）方法，其中包含pooler和build_keypoint_head
             2 完成dp_kp_refinement_head的代码
+=======
+#ntp server 设置:
+#设置NTP服务器
+    1安装ntp
+    sudo apt-get update
+    sudo apt-get install ntp
+
+    2配置ntp
+    在/etc/ntp.conf下 sudo nano /etc/ntp.conf
+    在配置文件中，您可以添加公共NTP服务器作为时间源，或者保留默认的服务器。确保您的NTP服务器对您的网络是开放的，可以通过添加以下行来实现：
+    restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
+    这里的192.168.1.0是您的网络地址，255.255.255.0是子网掩码。根据您的网络配置进行调整。
+
+    保存并关闭文件后，重启NTP服务
+    sudo systemctl restart ntp
+
+    检查NTP服务是否正常运行：
+    ntpq -p
+
+
+#设置NTP客户端
+    sudo apt-get update
+    sudo apt-get install ntp
+
+    编辑NTP配置文件 /etc/ntp.conf：
+    sudo nano /etc/ntp.conf
+
+    在文件中，将服务器指向您的NTP服务器。例如，如果您的服务器IP是192.168.1.100，则添加：server 192.168.1.100
+
+    sudo systemctl restart ntp
+
+#验证同步
+    在客户端主机上，您可以运行以下命令来检查时间同步状态：
+    ntpq -p
+
+#打开防火墙端口
+    如果您的服务器位于防火墙后面，您可能需要在防火墙上打开UDP端口123，这是NTP使用的端口。这可以通过以下命令完成：
+    sudo ufw allow 123/udp
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 2a3bba9f816869908a7364d8127c15c0a1ce4816:densepose_note.txt

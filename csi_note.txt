@@ -1,0 +1,21 @@
+从root目录(nc-csi-bench)开始运行./scripts/nexmon/setup/push_nexmon_patch.sh 加载nexmon硬件 密码：seemoo  每次从新开始时，都需要进行这一步
+
+在sensession/experiments/base_yi.py 运行这个文件：在nc-csi-bench路径下运行python3 -m sensession.experiments.base_yi 
+如果上一步有问题，  运行 ssh-copy-id -i ~/.ssh/id_rsa.pub admin@192.168.10.31
+如果还不行，先关sdr的电脑，黑色，再关sdr，白色，等一会先开sdr，再开主机
+
+数据保存在data/xx/db.parquet   
+
+
+要记得去掉pilot的数据
+先不用下面这个 #运行ssh admin@192.168.10.31 password:seemoo 然后cd /jffs 
+
+
+
+
+
+网络输出keypoint map   和uv map,确认一下输出格式以及是否含有bounding box
+
+
+timestamp for video:ntp server,用于time synchronization,拍视频和csi,
+
