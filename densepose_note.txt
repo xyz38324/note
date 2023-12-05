@@ -194,3 +194,7 @@ self.train_on_pred_boxes=False,那么mask head和keypopint head 的输入就是r
 
 12/3日任务： 1 roi_head.py建立_init_kp_dp_rf_head（）方法，其中包含pooler和build_keypoint_head
             2 完成dp_kp_refinement_head的代码
+
+roi_head.py需要forward_givenbox方法
+从头开始完成cfg文件，studentmodel中的self.inference方法完成
+
