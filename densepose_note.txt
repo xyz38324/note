@@ -198,3 +198,25 @@ self.train_on_pred_boxes=False,那么mask head和keypopint head 的输入就是r
 roi_head.py需要forward_givenbox方法
 从头开始完成cfg文件，studentmodel中的self.inference方法完成
 
+
+{
+transfer learning 是要固定teacher model的parameter
+
+在DefaultTrainer类中的init生成self._trainer，他的train()方法调用super().train(),就是TrainerBase类中的
+train()方法，其中self.run_step()来用模型进行计算，但是这个方法没有被定义，而是在子类DefaultTrainer中的run_step()重写了，
+在这个方法中，调用self._trainer.run_step()。我需要写一个SimpleTrainer的子类，重写run_step()方法。不是重写，就是重新写一个SimpleTrainer类，不然在
+DefaultTrainer的init方法中生成SimpleTrainer类没办法修改，所以写一个SimpleTrainer类，只是修改run_step方法
+
+
+上述不一定对，在MyTrainer中重写init， 也有super(),self._trainer= CustomSimpleTrainer(self.model, self.data_loader, self.optimizer)
+用CustomerTrainer重写SimpleTrainer。在MyTrainer编写run_step(),调用self._trainer_1就可以忽略原来的self._trainer()
+子类会覆盖父类的定义，所以子类也可以有self._trainer
+
+在xxx.py中测试以下，应该只在MyTrainer中super(),和self._trainer就可以了
+}
+
+
+teacher model中的配置文件还有一些训练用的参数，看一下如何把这些参数放入我自己的cfg文件中去
+
+
+
