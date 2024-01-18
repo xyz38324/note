@@ -19,3 +19,20 @@
 
 timestamp for video:ntp server,用于time synchronization,拍视频和csi,
 
+
+
+cat make_csi_params.sh
+
+在setup-script中 ./nexmon/make_csi_params.sh 157 80 ff:ff.... 
+
+./nexmon/set_filter_rules.sh seemoo@192.168.10.33 eth6
+
+
+1. 复现成功后，信号预处理，(label noise武的建议)  
+从csi到rgb的过程中，有映射关系，这个映射是不是够准确。如何描述rgb信号，是否保留了csi信息。 如何保留wifi原始信息！这是一个点。。。
+损失函数，调整策略，有什么局限。如何评价gt和wifi信号的相似度。mse，要改（ssim，或类似的。 mse时pixel整体接近，存在mse很高但是图像有很相似。图像加了一点东秀，mse很高
+但是依然很相似。）
+最后的结果，只要改进后比自己好就行。
+
+看不同学校的research asistant. 发邮件，投简历，做项目，先联系导师，然后让导师告诉我怎么去做项目，因为不是一个学校。
+
